@@ -19,6 +19,7 @@ You read these from disk (paths provided in your task prompt):
 4. **Tool Data** at `output/<brand-slug>/research/tool-data.md`
 5. **Competitor Analysis** at `output/<brand-slug>/research/competitor-analysis.md`
 6. **AEO Analysis** at `output/<brand-slug>/research/aeo-analysis.md` -- AEO scores and findings (primary source)
+7. **Demand Signals** at `output/<brand-slug>/research/demand-signals.md` -- Demand tier per topic/query (may be absent; treat as `Unknown` if so)
 
 ## Your Outputs
 
@@ -42,7 +43,9 @@ Use the AEO Analyst's per-criterion scores and overall grade directly (do not re
 
 ### Step 2: Turn Findings into Backlog Items
 For every meaningful finding in the research, create a backlog item using the REQUIRED schema from the `aeo-plan-structure` skill. Each item MUST have:
-`ID`, `Title`, `Evidence`, `Target pages`, `Artifact type`, `AEO criterion`, `Impact`, `Effort`, `Owner`, `Buildable`.
+`ID`, `Title`, `Evidence`, `Target pages`, `Artifact type`, `AEO criterion`, `Demand`, `Impact`, `Effort`, `Owner`, `Buildable`.
+
+Set `Demand` (High / Medium / Low / Unknown) from `demand-signals.md`, matching the item's topic/target query. If demand-signals is absent, use `Unknown` and note it. Demand is a prioritization input only -- never a ranking claim.
 
 Map each item to exactly one **Artifact type** so `/aeo-build` can route it:
 - `schema` -- needs JSON-LD (stacked) on specific pages
@@ -56,10 +59,11 @@ Map each item to exactly one **Artifact type** so `/aeo-build` can route it:
 - `off-site` -- editorial mentions, Wikipedia/Wikidata, directory consistency (Buildable = Spec-only)
 
 ### Step 3: Prioritize
-Rank items into P1 (Quick Win), P2 (Strategic), P3 (Major), P4 (Easy), P5 (Backlog) using impact vs effort. Favor the 2026 high-impact levers: schema stacking, answer-first rewrites of high-traffic pages, FAQ schema with parity, entity/`sameAs` graph, freshness.
+Rank items into P1 (Quick Win), P2 (Strategic), P3 (Major), P4 (Easy), P5 (Backlog) using **Demand x citability gap, then effort**. A high-Demand topic with a large citability gap outranks a low-Demand one at the same effort. Favor the 2026 high-impact levers: schema stacking, answer-first rewrites of high-Demand pages, FAQ schema with parity, entity/`sameAs` graph, freshness. When Demand is `Unknown`, fall back to impact vs effort and flag the missing signal.
 
 ### Step 4: Add the Strategic Layers
 - **Competitive position:** short table of brand vs competitors on overall AEO + key criteria.
+- **Demand snapshot:** a short table of priority topics/queries with their Demand tier (from demand-signals), and any new high-Demand prompts discovered that should become backlog items or content briefs.
 - **Buyer-journey citation map:** for B2B/enterprise brands, the answers to own at pre-funnel / TOFU / MOFU / BOFU.
 - **Measurement plan:** the priority prompt set to track, KPIs (citation frequency, AI Overview presence, AI-referred sessions, crawler access), and a quarterly cadence.
 
@@ -74,7 +78,7 @@ Follow the document structure in the `aeo-plan-structure` skill exactly.
 - **Every item is traceable.** No backlog item without an `Evidence` citation to a research finding.
 - **Every item is routable.** Exactly one `Artifact type` per item.
 - **Be specific.** "Add stacked FAQPage+Article schema to /pricing with these 6 questions" -- not "improve structured data."
-- **Be honest about confidence.** Mark experimental items (e.g., `llms-txt`) as low-priority.
+- **Be honest about confidence.** Mark experimental items (e.g., `llms-txt`) as low-priority. Demand is a prioritization input, not a ranking claim; use the `demand-signals` source label and `Unknown` when no signal exists.
 - **No sales language.** No pricing, outreach, or "executive summary to send a prospect." This is an internal build plan.
 - **Don't fabricate scores or data.** If research is incomplete, note the limitation.
 

@@ -54,6 +54,7 @@ Use this fixture for local smoke tests and documentation examples. It is not a r
 
 ## API Keys (optional)
 - Google PageSpeed API key: not provided
+- Keyword-volume API (optional): not provided
 - Perplexity API key: not provided
 - OpenAI API key: not provided
 - SerpAPI key: not provided
