@@ -6,6 +6,7 @@ A multi-agent rig that helps an internal enterprise team continuously improve th
 
 - **Stage 1 -- Plan (`/aeo-plan`)**: Research the brand's site + competitors, run a deep AEO analysis, and produce a prioritized, traceable **AEO improvement plan** (`plan/aeo-plan.md`). This is a human-approved gate.
 - **Stage 2 -- Build (`/aeo-build`)**: Take the approved plan and selected backlog items, and generate **ready-to-ship artifacts** the team drops into their site/CMS: stacked JSON-LD schema, answer-first content blocks, metadata, an entity knowledge graph, a measurement pack, content briefs, and (optionally) `llms.txt` and an edge-injection config. Everything is validated before an implementation manifest is written.
+- **Stage 3 -- Track (`/aeo-track`)**: An ongoing measurement loop. Execute the brand's prompt set against AI answer engines (Perplexity, OpenAI web search, Google AI Overviews via SERP), detect whether the brand is cited, capture who is cited instead, and maintain a running **citation scoreboard** (`measurement/citation-scoreboard.md`) over time. Keyless-safe (manual logging + WebSearch proxy); optional keys unlock measured runs. Re-run on cadence (monthly suggested).
 
 This is an **internal tool**, not a sales asset. There is no cold outreach, cover letter, pricing, or "deliverable to sell." The output is work product an enterprise team ships.
 
@@ -16,6 +17,7 @@ This is an **internal tool**, not a sales asset. There is no cold outreach, cove
 - `/setup` -- Configure the brand profile (domains, entity signals, AEO targets, tech stack, governance). Run once.
 - `/aeo-plan` -- Research + AEO analysis -> a prioritized improvement plan (the approval gate).
 - `/aeo-build` -- Generate validated artifacts for the plan items the team selected.
+- `/aeo-track` -- Run the prompt set against AI engines and track citation frequency over time (re-run on cadence).
 
 ## The Agent Team
 
@@ -35,6 +37,7 @@ This is an **internal tool**, not a sales asset. There is no cold outreach, cove
 | **llms.txt Builder** | Optional `llms.txt`/`llms-full.txt` (labeled low-priority) | Build |
 | **Artifact Validator** | **GATE**: validates JSON-LD validity, visible-text parity, answer-first conformance, entity consistency, traceability | Build |
 | **Manifest/Report Builder** | Implementation manifest + optional internal stakeholder summary | Build |
+| **Citation Tracker** | Runs `scripts/run-citation-checks.py`, interprets the JSON, writes the dated run detail + the running citation scoreboard | Track |
 
 ## Context Engineering (CRITICAL)
 
@@ -47,7 +50,7 @@ This is an **internal tool**, not a sales asset. There is no cold outreach, cove
 5. **Track status, not content.** After an agent finishes, you need: (a) status, (b) file paths, (c) issues. NOT file contents.
 6. **The Validator reads from disk.** Pass it the output directory path.
 7. **For artifacts, spawn ONE builder per artifact type.** Each spawn writes its own files.
-8. **Use max_turns on Task calls.** Web Crawler: 18, API Caller: 15, Competitor Researcher: 12, AEO Analyst: 15, AEO Strategist: 15, Schema Builder: 20, Answer-Content Builder: 20, Metadata Builder: 12, Entity Builder: 12, Measurement Builder: 10, Content-Brief Builder: 15, llms.txt Builder: 8, Artifact Validator: 20, Manifest/Report Builder: 15.
+8. **Use max_turns on Task calls.** Web Crawler: 18, API Caller: 15, Competitor Researcher: 12, AEO Analyst: 15, AEO Strategist: 15, Schema Builder: 20, Answer-Content Builder: 20, Metadata Builder: 12, Entity Builder: 12, Measurement Builder: 10, Content-Brief Builder: 15, llms.txt Builder: 8, Artifact Validator: 20, Manifest/Report Builder: 15, Citation Tracker: 12.
 9. **Use workspace-root-resolved paths for agent outputs.** Relative paths are acceptable in human docs, but Task prompts should pass absolute paths or clearly rooted paths so agents cannot write into the wrong working directory.
 10. **Verify files after every agent returns.** A SUCCESS status is not enough. Check every expected output path exists before advancing. If a file is missing, do one focused retry that names the exact missing path; if still missing, record an evidence gap or set the run to BLOCKED according to the quality model.
 11. **Write routing and validation artifacts.** For `/aeo-build`, persist `artifacts/build-route.md` before builders run and `artifacts/validation.md` after deterministic validation so debugging does not depend on terminal output.
@@ -198,6 +201,26 @@ Runs only after `plan/aeo-plan.md` exists and items are selected.
 19. Update build state in `plan.md` or `artifacts/build-route.md` (`BUILD_COMPLETE`, `BUILD_PARTIAL`, or `BUILD_BLOCKED`).
 20. Report results: confidence state, build state, what was built, what evidence gaps remain, where artifacts go, and how to deploy + measure.
 
+## Workflow: /aeo-track (Stage 3, ongoing measurement loop)
+
+Runs after a prompt set exists (from `/aeo-build`'s `measurement/prompt-set.md`, falling back to `plan.md` priority queries, then the brand profile's target AI queries). Additive measurement; does not change plan/build.
+
+### Phase T1: Locate & Confirm
+1. Identify `<brand-slug>` and confirm `output/<brand-slug>/` exists.
+2. Confirm prompt-set source, brand name/domains, and competitors. Note fixture mode.
+3. Detect mode: check for engine keys (env vars `PERPLEXITY_API_KEY`/`OPENAI_API_KEY`/`SERPAPI_KEY`/`SERPAPI_API_KEY`/`DATAFORSEO_KEY`, or `## API Keys` in `config/brand-profile.md`). Tell the user whether this is a **measured** or **manual** run.
+
+### Phase T2: Run the deterministic script
+4. Run `python3 scripts/run-citation-checks.py --brand-dir output/<brand-slug> --write-report` (reads keys env-first then profile; picks measured/manual; exits 0 even with no keys). Writes `measurement/citation-runs/<date>.json` + `<date>.md` and a deterministic scoreboard draft.
+5. Verify the run JSON + `.md` exist; re-run once if missing.
+
+### Phase T3: Interpret + scoreboard
+6. Spawn **Citation Tracker** (max_turns: 12) -> finalizes `measurement/citation-runs/<date>.md` and `measurement/citation-scoreboard.md` (per-engine frequency, trend vs prior run, top uncited high-priority prompts, competitors winning citations). In manual mode it may run a WebSearch directional proxy (labeled, never "measured").
+7. Verify both output files exist; retry once with the exact missing path.
+
+### Phase T4: Report
+8. Report mode, overall citation frequency + trend, biggest gaps, competitor wins, and the scoreboard path. Recommend re-running on cadence (monthly suggested). Citation detection is heuristic (`aeo-analysis` label); keep confidence `PARTIAL_CONFIDENCE` for manual/directional runs.
+
 ## Validation Gate Checklist (Artifact Validator Owns This)
 
 ### Schema
@@ -250,6 +273,8 @@ output/<brand-slug>/
     metadata/                        # meta-tags.md (per-page title/description/OG + freshness)
     entity/                          # knowledge-graph.json + consistency-report.md
     measurement/                     # prompt-set.md + measurement-plan.md + bot-log-snippet
+      citation-runs/                 # <YYYY-MM-DD>.json + <YYYY-MM-DD>.md (per /aeo-track run)
+      citation-scoreboard.md         # running AI-citation frequency + trend across runs
     content-briefs/                  # *.md
     llms.txt, llms-full.txt          # optional, low-priority
     edge/                            # optional Cloudflare Worker / injection config
@@ -269,15 +294,18 @@ output/<brand-slug>/
 | llms.txt Authoring | `.claude/skills/llms-txt/SKILL.md` | llms.txt Builder |
 | AEO Plan Structure | `.claude/skills/aeo-plan-structure/SKILL.md` | AEO Strategist, Manifest/Report Builder |
 | Artifact QA Checklist | `.claude/skills/qas-checklist/SKILL.md` | Artifact Validator (ONLY skill the Validator reads) |
+| Citation Tracking | `.claude/skills/citation-tracking/SKILL.md` | Citation Tracker |
 
 ## File Reference
 
 | What | Where |
 |------|-------|
 | This file (orchestration hub) | `CLAUDE.md` |
-| Commands | `.claude/commands/aeo-plan.md`, `aeo-build.md`, `setup.md` |
+| Commands | `.claude/commands/aeo-plan.md`, `aeo-build.md`, `aeo-track.md`, `setup.md` |
 | Plan agents | `.claude/agents/web-crawler.md`, `api-caller.md`, `competitor-researcher.md`, `aeo-analyst.md`, `aeo-strategist.md` |
 | Build agents | `.claude/agents/schema-builder.md`, `answer-content-builder.md`, `metadata-builder.md`, `entity-builder.md`, `measurement-builder.md`, `content-brief-builder.md`, `llms-txt-builder.md`, `artifact-validator.md`, `manifest-builder.md` |
-| Skills | `.claude/skills/aeo-optimization/`, `technical-seo/`, `content-seo/`, `local-seo/`, `schema-authoring/`, `llms-txt/`, `aeo-plan-structure/`, `qas-checklist/` |
+| Track agents | `.claude/agents/citation-tracker.md` |
+| Track scripts | `scripts/run-citation-checks.py` |
+| Skills | `.claude/skills/aeo-optimization/`, `technical-seo/`, `content-seo/`, `local-seo/`, `schema-authoring/`, `llms-txt/`, `aeo-plan-structure/`, `qas-checklist/`, `citation-tracking/` |
 | Brand config | `config/brand-profile.md` (template: `config/brand-profile.example.md`) |
 | Output | `output/<brand-slug>/` |

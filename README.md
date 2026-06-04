@@ -5,6 +5,8 @@ A Claude Code rig that helps an internal team continuously improve their brand's
 1. **Plan (`/aeo-plan`)** -- researches your site and competitors, runs a deep AEO analysis, and produces a prioritized, traceable **AEO improvement plan**. You review and approve it, and select which items to build.
 2. **Build (`/aeo-build`)** -- generates **ready-to-ship artifacts** for the items you selected: stacked JSON-LD schema, answer-first content blocks, metadata, an entity knowledge graph, a measurement pack, content briefs, and (optionally) `llms.txt` and an edge-injection config. Everything is validated before an implementation manifest is written.
 
+Then an ongoing **measurement loop (`/aeo-track`)** executes the prompt set against AI answer engines and tracks how often your brand is actually cited -- turning the manual measurement plan into a measured one.
+
 This is an **internal tool**, not a sales asset. No cold outreach, cover letters, pricing, or "deliverable to sell" -- the output is work product your team ships.
 
 **AEO is the whole point.** Every artifact targets being *cited* by answer engines, not just ranking in a list of links.
@@ -55,6 +57,21 @@ Generates and validates artifacts for the selected items:
 - **Artifact Validator** -- gate: JSON-LD validity, schema/visible-text parity, answer-first conformance, entity consistency, traceability
 - **Manifest/Report Builder** -- implementation manifest (how to deploy each artifact) + optional internal stakeholder summary
 
+### Stage 3 -- Track citations (the measurement loop)
+
+```
+/aeo-track
+```
+
+`/aeo-build` writes a *manual* measurement plan -- a prompt set you'd paste into engines by hand. `/aeo-track` turns it into a *measured* one: it executes the prompt set against AI answer engines, detects whether your brand is cited, captures who is cited instead, and updates a running scoreboard so you can watch citation frequency over time.
+
+- **Keyless by default.** With no API keys it produces a manual-logging template plus an optional WebSearch directional proxy (clearly labeled lower-confidence) -- it never fails for a missing key.
+- **Measured with a key.** Add a **Perplexity** key (recommended -- it returns answers *with* sources), and/or **OpenAI** (web search) or **SerpAPI** (Google AI Overviews proxy), via env var or `config/brand-profile.md`, to get real measured runs.
+- **Honest labeling.** Every result is labeled "measured via [engine]" vs "directional proxy / manual". Citation detection is heuristic (domain/name matching) and says so.
+- **Trend, not snapshot.** Re-run on cadence (monthly suggested); the scoreboard shows per-engine frequency, the delta vs the prior run, top uncited high-priority prompts, and competitors winning citations.
+
+The deterministic engine orchestration lives in `scripts/run-citation-checks.py`; the **Citation Tracker** agent interprets the results and maintains the scoreboard.
+
 ## What You Get
 
 ```
@@ -77,6 +94,8 @@ output/<brand-slug>/
     metadata/                        # meta-tags.md
     entity/                          # knowledge-graph.json + consistency-report.md
     measurement/                     # prompt-set.md + measurement-plan.md + bot-log-snippet
+      citation-runs/                 # <date>.json + <date>.md (per /aeo-track run)
+      citation-scoreboard.md         # running AI-citation frequency + trend
     content-briefs/                  # *.md
     llms.txt                         # optional, low-priority
     edge/                            # optional Cloudflare Worker / injection config
@@ -128,6 +147,7 @@ Your settings live in `config/brand-profile.md` (template: `config/brand-profile
 | `/setup` | Configure the brand profile |
 | `/aeo-plan` | Research + AEO analysis -> a prioritized improvement plan (approval gate) |
 | `/aeo-build` | Generate validated artifacts for the selected plan items |
+| `/aeo-track` | Run the prompt set against AI engines + track citation frequency over time (re-run on cadence) |
 
 ## Local Validation
 
