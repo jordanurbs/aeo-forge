@@ -1,16 +1,16 @@
 ---
 name: Technical SEO
 version: 1.0.0
-description: Technical SEO audit methodology including site speed, meta tags, schema markup, crawlability, mobile usability, security, and free API integration patterns for PageSpeed Insights, SSL Labs, W3C Validator, Wayback Machine, and WHOIS. Used by the Site Crawler, Report Writer, and Quality Reviewer agents.
+description: Technical SEO methodology including site speed, meta tags, schema markup, crawlability, mobile usability, security, and free API integration patterns for PageSpeed Insights, SSL Labs, W3C Validator, Wayback Machine, and WHOIS. Used by the Web Crawler and API Caller agents to gather the technical signals that feed the AEO analysis and improvement plan.
 ---
 
 # Technical SEO Skill
 
-This skill covers everything needed to perform a comprehensive technical SEO audit of a website. It includes manual inspection checklists, scoring criteria, and -- critically -- exact API integration patterns for pulling real metrics from free tools.
+This skill covers the technical foundation an AEO program needs: crawlability and clean, fast, parseable pages are prerequisites for AI engines to extract and cite content. It includes manual inspection checklists, scoring criteria, and -- critically -- exact API integration patterns for pulling real metrics from free tools. These signals feed the AEO analysis (PLAN stage); they are not a standalone sales audit.
 
 ## API Integration Patterns
 
-These are the five free APIs the Site Crawler calls to get real, verifiable data. Each pattern includes the exact curl command, how to parse the response, and what constitutes good/needs-improvement/poor for each metric.
+These are the five free APIs the API Caller invokes to get real, verifiable data. Each pattern includes the exact curl command, how to parse the response, and what constitutes good/needs-improvement/poor for each metric.
 
 ### 1. Google PageSpeed Insights
 
@@ -176,7 +176,7 @@ Parse the text output for: Creation Date, Expiration Date, Registrar, Name Serve
 
 ## Manual Technical SEO Checklist
 
-Beyond the API data, the Site Crawler also performs manual inspection of the HTML. Use WebFetch to load the page and analyze:
+Beyond the API data, the Web Crawler also performs manual inspection of the HTML. Use WebFetch to load the page and analyze:
 
 ### Meta Tags
 
@@ -226,11 +226,14 @@ Check for JSON-LD or microdata:
 - Schema valid: yes/no (check for required properties)
 - Missing recommended schemas for this business type: [list]
 
-**Recommended schemas by business type:**
-- Local business: LocalBusiness, Organization, BreadcrumbList, FAQPage
-- Service business: Service, LocalBusiness, Organization, FAQPage, Review
-- E-commerce: Product, Organization, BreadcrumbList, FAQPage
-- Professional services: ProfessionalService, Organization, Person, FAQPage
+**Recommended schemas by brand type:**
+- SaaS / software: Organization, WebSite, SoftwareApplication, Article, FAQPage, BreadcrumbList
+- B2B / professional services: Organization, Service, Person (experts), Article, FAQPage, BreadcrumbList
+- E-commerce: Product, Organization, BreadcrumbList, FAQPage, ItemList
+- Content / media: Organization, Article, Person, FAQPage, BreadcrumbList
+- Local/multi-location: LocalBusiness, Organization, BreadcrumbList, FAQPage
+
+For AEO, stack multiple relevant types in a single `@graph` per key page rather than emitting one block (see the schema-authoring skill).
 
 ### Crawlability
 
@@ -280,12 +283,12 @@ Check for JSON-LD or microdata:
 
 ---
 
-## Report Writing Guidelines for Technical SEO
+## Analysis Guidelines for Technical SEO
 
-When writing the Technical SEO section of the report:
+When recording technical findings for the AEO analysis and plan:
 
-1. **Lead with the data.** Start each subsection with the actual metric (PageSpeed score, SSL grade, error count), then interpret it.
-2. **Reference the specific site.** "Your homepage scored 67 on mobile PageSpeed" not "The site has room for improvement."
-3. **Explain why it matters.** Non-technical readers need to know the business impact: "A PageSpeed score of 67 means your site loads in about 4.2 seconds on mobile. Google research shows 53% of mobile visitors leave a site that takes longer than 3 seconds to load."
-4. **Include specific recommendations.** "Compress your hero image (currently 2.3MB) to WebP format -- this alone could improve your LCP by 1-2 seconds."
-5. **Cross-reference API data.** When citing a metric, note its source: "(Source: Google PageSpeed Insights API, [date])" or "(Source: SSL Labs, Grade A)".
+1. **Lead with the data.** State the actual metric (PageSpeed score, SSL grade, error count), then interpret it.
+2. **Reference the specific page.** "The homepage scored 67 on mobile PageSpeed" not "the site has room for improvement."
+3. **Tie it to AEO impact where relevant.** Slow, invalid, or uncrawlable pages are harder for AI engines to fetch, parse, and cite. Note when a technical gap blocks AEO (e.g., "render-blocked content hides the answer text from crawlers").
+4. **Produce buildable findings.** Frame each as a candidate plan item with a target page and the artifact type that fixes it (e.g., metadata, schema), so the AEO Strategist can route it.
+5. **Cite the source + date.** "(Source: Google PageSpeed Insights API, [date])" / "(Source: SSL Labs, Grade A)". Never fabricate a metric.

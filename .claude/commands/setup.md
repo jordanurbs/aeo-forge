@@ -1,6 +1,6 @@
-# /setup -- Member Customization Wizard
+# /setup -- Brand Configuration Wizard
 
-Walk the member through configuring their AEO & SEO Audit instance. Fills out `config/member-profile.md` with their business details, branding, service packaging, and optional API keys.
+Walk the user through configuring their Enterprise AEO Builder instance. Fills out `config/brand-profile.md` with the brand's details, entity signals, AEO targets, tech stack, governance, and optional API keys. This is an internal tool -- there is no pricing, branding-for-sale, or outreach configuration.
 
 ## Input: $ARGUMENTS
 
@@ -10,116 +10,81 @@ No arguments expected. This is an interactive wizard.
 
 Follow the Context Engineering rules in CLAUDE.md:
 - This command runs directly (no agent spawning needed)
-- Write the completed profile to `config/member-profile.md`
+- Write the completed profile to `config/brand-profile.md`
+- A template lives at `config/brand-profile.example.md` for reference
 
 ## Pipeline
 
 ### Step 1: Welcome
 
-Tell the member:
+Tell the user:
 
 ```
-Welcome to AEO & SEO Audit setup.
+Welcome to the Enterprise AEO Builder setup.
 
-I'll ask you a few questions to configure your branding and preferences.
-This only needs to be done once -- your settings will be used for every
-audit you run.
+I'll ask a few questions to configure the brand we'll be optimizing for AI
+search. This is a one-time setup -- your answers are reused by /aeo-plan and
+/aeo-build. You can edit config/brand-profile.md anytime.
 ```
 
 ### Step 2: Collect Information
 
-Ask the member for the following information. Use AskUserQuestion where appropriate for choices. Collect in this order:
+Ask for the following. Use AskUserQuestion for choices. Collect in this order:
 
-**Your Business**
-1. What's your business or agency name?
-2. What's your name?
-3. What's your website URL?
-4. What's your contact email?
+**Brand**
+1. Brand name?
+2. Primary domain?
+3. Any additional domains/subdomains? (docs, blog, etc., or "none")
+4. Industry / category?
+5. One-line canonical description? (used verbatim in Organization schema and llms.txt)
 
-**Your Niche**
-5. What industry do you primarily serve? (e.g., dentists, plumbers, realtors, restaurants, general)
-6. What terms do your prospects use? (niche-specific language)
-7. What are the common pain points in this niche?
+**Entity Signals (single source of truth)**
+6. Legal/registered name (if different)?
+7. Founders / key people (names + titles)?
+8. Founding year?
+9. Authoritative profiles for `sameAs` (Wikipedia, Wikidata, LinkedIn, Crunchbase, social)?
+10. Key verifiable stats/claims? (only true, verifiable facts -- these become schema)
 
-**Your Service Packaging**
-8. What do you charge for a standalone audit report? (e.g., $500-$1,500)
-9. What do you charge for audit + implementation plan? (e.g., $2,000-$3,500)
-10. What do you charge for monthly AEO/SEO management? (e.g., $750-$2,000/mo)
-11. What do you charge for quarterly re-audits? (e.g., $500-$1,000)
+**AEO Targets**
+11. Priority topics/entities the brand should own?
+12. Target AI queries -- the real questions buyers ask AI assistants?
+13. Buyer-journey focus? (pre-funnel / TOFU / MOFU / BOFU)
+14. Competitors to benchmark against? (URLs or "auto-find")
 
-**Deliverable Branding**
-12. What should the report header say? (e.g., "AEO & SEO Audit | Prepared by [Name] | [Business]")
-13. What should the report footer say? (e.g., "Questions? Email [email] or schedule a call at [link]")
-14. What's your primary brand color? (hex code, e.g., #2563eb)
-15. What's your accent color? (hex code, e.g., #f59e0b)
-16. What's your highlight color? (hex code, e.g., #10b981)
+**Tech Stack & Deployment**
+15. CMS / framework?
+16. How is schema currently added? (templates / plugin / none)
+17. Edge/CDN available for schema injection? (Cloudflare Workers / Fastly / none)
+18. Who deploys changes? (Eng / Marketing via CMS / agency)
+
+**Content Governance**
+19. Brand voice / style guide? (link or short description)
+20. Content owners / approvers?
+21. Refresh cadence target? (e.g., quarterly)
+
+**Measurement**
+22. Analytics platform? (GA4 / PostHog / Adobe / none)
+23. Any AI-visibility tools in use?
 
 **API Keys (Optional)**
-17. Do you have a Google PageSpeed API key? (Free -- get one at https://developers.google.com/speed/docs/insights/v5/get-started)
-    - If yes: collect the key
-    - If no: explain it's optional -- "PageSpeed works without a key at lower rate limits, which is fine for running one audit at a time. You can always add a key later by editing config/member-profile.md."
-
-**Preferences**
-18. Auto-discover competitors? (yes / no -- if no, you'll provide competitor URLs each time)
-19. Include local SEO in audits? (yes / no -- some businesses are purely online)
-20. Report length preference? (standard 25-35 pages / condensed 15-20 pages)
-
-Note: AEO assessment is always included -- it's the differentiator. Not optional.
+24. Google PageSpeed API key? (Free at https://developers.google.com/speed/docs/insights/v5/get-started)
+    - If no: "It's optional -- PageSpeed works without a key at lower rate limits, fine for one brand at a time. You can add it later in config/brand-profile.md."
 
 ### Step 3: Write Profile
 
-Write the completed profile to `config/member-profile.md`:
-
-```markdown
-# Member Profile
-
-## Your Business
-- Business name: [answer]
-- Your name: [answer]
-- Website: [answer]
-- Email: [answer]
-
-## Your Niche
-- Target industry: [answer]
-- Niche-specific language: [answer]
-- Common pain points in this niche: [answer]
-
-## Your Service Packaging
-- Audit report (standalone) price: [answer]
-- Audit + implementation plan price: [answer]
-- Monthly AEO/SEO management retainer: [answer]
-- Quarterly re-audit price: [answer]
-
-## Deliverable Branding
-- Report header: [answer]
-- Footer: [answer]
-- Primary color: [answer]
-- Accent color: [answer]
-- Highlight color: [answer]
-
-## API Keys (optional)
-- Google PageSpeed API key: [answer or "not provided"]
-
-## Preferences
-- Auto-discover competitors: [answer]
-- Include local SEO: [answer]
-- Report length preference: [answer]
-```
+Write the completed profile to `config/brand-profile.md` using the structure in `config/brand-profile.example.md`, substituting the user's answers.
 
 ### Step 4: Confirm
 
-Tell the member:
+Tell the user:
 
 ```
-Setup complete. Your profile is saved at config/member-profile.md.
+Setup complete. Your brand profile is saved at config/brand-profile.md.
 
-You can edit it anytime. Run /run-audit to generate your first audit.
+Edit it anytime. Next:
+1. Run /aeo-plan to research the brand and generate an AEO improvement plan.
+2. Review and approve the plan (select which items to build).
+3. Run /aeo-build to generate the artifacts your team will ship.
 
-Note: Tool permissions are pre-configured in .claude/settings.local.json.
-You won't need to approve individual tool calls during audit runs.
-
-Tip: AEO (Answer Engine Optimization) is what makes your audits stand out.
-When you reach out to prospects, lead with "I checked how your business
-shows up in AI search engines like ChatGPT and Perplexity..." -- it's a
-hook no one else is using.
+Tool permissions are pre-configured in .claude/settings.local.json.
 ```

@@ -1,14 +1,9 @@
-# Client output data
+# Brand output data
 output/*/
 !output/.gitkeep
 
-# Saved voice profiles (email-automation only)
-config/voices/*/
-!config/voices/.gitkeep
-
-# Member config (personal/private)
-config/member-profile.md
-config/lead-criteria.md
+# Brand config (personal/private) -- keep the example template tracked
+config/brand-profile.md
 
 # Secrets
 .env

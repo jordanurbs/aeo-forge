@@ -1,7 +1,7 @@
 ---
 name: AEO Optimization
 version: 1.0.0
-description: Answer Engine Optimization -- the star skill. Assessment framework for how businesses appear in AI search engines (ChatGPT, Perplexity, Google AI Overviews, Bing Copilot). Covers structured data for AI, answer-ready content formats, entity authority, topical authority, citation-worthiness, and scoring methodology. Used by AEO Analyst, Report Writer, SEO Strategist, and Quality Reviewer agents.
+description: Answer Engine Optimization -- the star skill. Assessment framework + 2026 enterprise playbook for how brands appear in AI search engines (ChatGPT, Perplexity, Google AI Overviews, Gemini, Copilot, Claude). Covers structured data for AI, answer-ready content formats, entity authority, topical authority, citation-worthiness, scoring, schema stacking, and measurement. Used by the AEO Analyst, AEO Strategist, the artifact builders, and the Artifact Validator.
 ---
 
 # AEO Optimization Skill (Answer Engine Optimization)
@@ -54,6 +54,58 @@ Understanding this is critical to the assessment. AI engines don't rank pages --
 | **Perplexity AI** | Cites specific sources with links | Values unique data, specific claims, and authoritative sources |
 | **Bing Copilot** | Draws from Bing index + partner data | Bing SEO factors matter; structured data heavily weighted |
 | **Claude (web search)** | Searches and synthesizes from multiple results | Values comprehensive, nuanced, well-sourced content |
+
+## 2026 Enterprise AEO Playbook (Evidence-Based)
+
+This section captures what actually moves AI citations as of 2026. It informs both assessment (planning stage) and artifact generation (build stage). Sources: Ahrefs 2026 schema study, the 2024 Princeton/Georgia Tech/IIT-Delhi GEO paper, and public statements from Google (Mueller/Illyes) on `llms.txt`.
+
+### The Highest-Impact Levers (in order)
+
+1. **Schema stacking.** FAQPage schema alone shows roughly +2.7x citation lift (≈41% vs 15% citation rate). The compounding win is *stacking* multiple JSON-LD types on a single key page: `Article` + `FAQPage` + `HowTo` + `Organization` + `BreadcrumbList` + `ItemList` (where applicable). Build a connected `@graph`, not isolated blocks.
+
+2. **Answer-first content structure.** AI Overviews cite from a page's *opening content* roughly 55% of the time. Every key page and section should:
+   - Lead with a direct answer in **40-60 words** at the very top.
+   - Use **H2/H3 headings phrased as real user questions** ("What is X?", "How much does X cost?").
+   - Use **short paragraphs (2-4 sentences)** and bulleted/numbered lists.
+   - Avoid slow-building narrative before the answer.
+
+3. **Visible-text / JSON-LD parity (compliance-critical).** FAQ/HowTo/Q&A schema must mirror the **visible, human-readable text on the page exactly**. Schema that describes content not visible on the page is a compliance risk and can be discounted or penalized. Always ship the matched pair (visible HTML + JSON-LD).
+
+4. **Malformed schema is worse than none.** Some engines treat broken or invalid JSON-LD as a negative integrity/trust signal. Every JSON-LD block must be parsed and schema.org-validated before shipping.
+
+5. **Entity / single source of truth.** AI engines reward a consistent, well-defined entity and penalize contradictory facts across a brand's properties. Maintain a canonical `Organization` definition with `sameAs` links to authoritative profiles (Wikipedia, Wikidata, LinkedIn, Crunchbase, official social), plus consistent name, description, founding info, and key stats everywhere they appear.
+
+6. **Freshness.** Engines favor current information. Use `dateModified`, a visible "Last updated: [Month Year]", year-in-title where appropriate, and recent statistics. Refresh high-value pages on a quarterly cadence.
+
+### Measurement Has Shifted (Rank -> Citation)
+
+Traditional rank is no longer the primary KPI. Track:
+- **Citation frequency** -- how often the brand is cited/recommended across ChatGPT, Perplexity, Google AI Overviews, Gemini, Copilot, Claude.
+- **AI Overview / answer presence** for a tracked set of priority prompts.
+- **AI-referred sessions** (referrers/user-agents from AI surfaces) and assisted conversions.
+- **Crawler access** -- bot-log hits from `GPTBot`, `ClaudeBot`, `PerplexityBot`, `OAI-SearchBot`, `Google-Extended`.
+
+A durable "answer footprint" -- the brand having complete, structured answers to its priority questions -- is the long-term goal, not raw content volume.
+
+### Buyer-Journey Citation Mapping (B2B / Enterprise)
+
+Map target answers across the journey so the brand is cited at every stage, not just bottom-funnel:
+- **Pre-funnel:** discoverability + citability (indexable HTML + extractable answers).
+- **TOFU:** narrative control + problem anchoring (the brand is part of the answer when buyers ask "why is X a problem").
+- **MOFU:** category ownership + solution clarity.
+- **BOFU:** competitive framing + definitive positioning.
+
+### On `llms.txt` (Set Expectations Honestly)
+
+`llms.txt` is **optional and low-priority** as of 2026. Google has publicly stated it does not support it, and major search/answer crawlers (GPTBot, PerplexityBot, Google-Extended) overwhelmingly do not fetch it (~10% of sites publish it; ~0.1% fetch rate). Its **one real use**: application/coding agents (Claude Desktop, claude.ai, Cursor, Continue) do respect it in retrieval flows. Generate it when useful for agent-facing docs, but never present it as a primary ranking or citation lever. For crawler access control, `robots.txt` remains the real standard.
+
+### Off-Site Actions (Spec, Don't Build)
+
+Some of the strongest entity/authority signals can't be built as files -- recommend them in the plan:
+- Third-party editorial mentions and authoritative citations.
+- Wikipedia/Wikidata entries (for qualifying entities).
+- Consistent profiles on industry directories and review platforms.
+- Original research/data that other sites cite.
 
 ## AEO Assessment Framework
 
@@ -235,39 +287,42 @@ Organized by effort level. When writing the action plan, select recommendations 
 
 ### Quick Wins (1-2 hours each)
 
-- Add FAQ schema to existing FAQ content
-- Add LocalBusiness/Organization JSON-LD schema
-- Write a definition paragraph at the top of each service page
-- Add comparison tables to service pages
-- Create a "What to expect" section on service pages with numbered steps
-- Add review schema for customer testimonials on the site
-- Ensure Google Business Profile is fully completed and linked
+- Add/repair FAQPage schema on existing FAQ content (highest single-page citation lever) -- ensure visible-text/JSON-LD parity
+- Stack schema on key pages: add `Article` + `BreadcrumbList` + `Organization` alongside `FAQPage`/`HowTo`
+- Rewrite the top of each key page as an answer-first block (40-60 word direct answer)
+- Convert section headings to real user questions (H2/H3)
+- Add a canonical `Organization` JSON-LD with `sameAs` to authoritative profiles
+- Add comparison tables and "what to expect" numbered steps to key pages
+- Add `dateModified` + visible "Last updated" to high-value pages
+- Validate every JSON-LD block (malformed schema is worse than none)
 
 ### Medium Effort (1-2 days each)
 
-- Create a comprehensive FAQ page targeting common questions
-- Publish a "How to choose a [service provider]" guide
-- Create a cost/pricing guide for services
-- Add case studies with specific metrics and outcomes
-- Build a resource center or knowledge base
+- Build a comprehensive FAQ page targeting the brand's priority questions, each answered in 2-4 sentences
+- Publish answer-first how-to and comparison content with HowTo/ItemList schema
+- Create a cost/pricing guide with specific figures
+- Add case studies with quantified outcomes and named experts
+- Resolve cross-property fact inconsistencies (single source of truth for name, description, stats)
+- Stand up an AI-visibility measurement loop (priority prompt set + tracking)
 - Optimize existing content for answer-ready formatting
-- Create comparison content (your service vs. alternatives)
 
 ### High Effort (1-2 weeks each)
 
-- Build content clusters around core service topics (pillar + supporting pages)
-- Develop original research or data (e.g., annual industry survey, local market report)
-- Create a comprehensive content calendar targeting AEO-relevant topics
-- Build authoritative backlinks through expert contributions, PR, and partnerships
+- Build content clusters around core topics (pillar + supporting pages) mapped to buyer-journey stages
+- Develop original research or data that other sites will cite
+- Implement edge-side schema injection (e.g., Cloudflare Worker) for at-scale deployment
+- Build authoritative backlinks and editorial mentions through expert contributions and PR
 - Develop video content optimized for AI search (transcripts, structured descriptions)
-- Pursue Google Knowledge Panel verification
+- Pursue Wikipedia/Wikidata entity presence and Knowledge Panel verification
 
-## Report Writing Guidelines for AEO
+## Analysis & Plan Guidelines for AEO
 
-1. **Lead with the score.** The AEO score is the first thing the prospect should see in this section. It's the attention-grabber.
-2. **Explain what AEO is.** Most business owners have never heard of it. Include a brief (2-3 sentence) explanation before diving into the assessment.
-3. **Show, don't just tell.** "When someone asks ChatGPT 'best dentist in [city],' your practice doesn't appear -- but your competitor [Name] does. Here's why."
-4. **Be specific about what's missing.** "Your site has no FAQ schema, no FAQ content, and no how-to guides. AI engines have nothing to extract when answering questions about [service]."
-5. **Connect to revenue.** "AI search is handling an estimated 20% of discovery queries in your market. Every month you're invisible to AI search, you're losing potential customers to competitors who are visible."
-6. **Prioritize recommendations.** The action plan should clearly indicate which AEO improvements give the biggest lift for the least effort.
-7. **The AEO section should be 6-8 pages.** This is the lead section, not an afterthought. Each criterion gets its own subsection with evidence and recommendations.
+These guide the AEO Analyst (analysis) and AEO Strategist (plan). The output is internal work product, not a sales deliverable.
+
+1. **Lead with the score.** Open the analysis with the AI Search Readiness score and the single biggest opportunity, criterion by criterion.
+2. **Be evidence-based.** Every finding cites something actually observed on the site (or its absence). No generic claims.
+3. **Show the gap concretely.** "When a buyer asks ChatGPT '[priority query],' the brand isn't cited -- competitor [Name] is, because they have answer-first content + FAQ schema and the brand doesn't."
+4. **Be specific about what's missing.** "No FAQ schema, no answer-first content, no HowTo guides -- AI engines have nothing to extract for questions about [topic]."
+5. **Make every finding buildable.** Tie each to a target page and the artifact type that fixes it (schema, answer-content, entity, metadata, content-brief), so it routes cleanly into the plan backlog.
+6. **Prioritize by impact vs effort.** Favor the 2026 high-impact levers (schema stacking, answer-first rewrites, FAQ parity, entity/`sameAs`, freshness).
+7. **Cover all six criteria** with evidence and recommendations; each gets its own subsection in the analysis.

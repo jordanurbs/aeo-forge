@@ -1,12 +1,14 @@
 ---
 name: Local SEO
 version: 1.0.0
-description: Local SEO audit methodology covering Google Business Profile, NAP consistency, citations, reviews, local keywords, local pack factors, and scorecard format. Used by Report Writer, Competitor Researcher, and Quality Reviewer agents.
+description: Local SEO methodology covering Google Business Profile, NAP consistency, citations, reviews, local keywords, local pack factors, and scorecard format. Used by the Competitor Researcher agent. OPTIONAL -- applies only to brands with physical locations or geographic service areas; skip for purely-online brands.
 ---
 
 # Local SEO Skill
 
-This skill covers the complete local SEO assessment for businesses that serve a geographic area. Local SEO determines whether a business shows up in Google's Local Pack, Google Maps, and location-based searches. For local businesses, this is often where the majority of their leads come from.
+**Optional skill.** Use it only when the brand has physical locations or a geographic service area. For purely-online enterprise brands, skip local SEO entirely -- the entity/consistency and answer-content work carries the AEO program instead.
+
+This skill covers local SEO assessment for brands that serve a geographic area. Local signals (Local Pack, Google Maps, location queries) and consistent NAP also feed entity authority, which matters for AI search: AI assistants increasingly surface local recommendations, and a consistent local entity reinforces the brand's single source of truth.
 
 ## Google Business Profile (GBP) Audit
 
@@ -212,10 +214,10 @@ Use this format for the Local SEO section of the report:
 | Local Content | 10% |
 | Local Keywords | 10% |
 
-## Report Writing Guidelines for Local SEO
+## Analysis Guidelines for Local SEO
 
-1. **Be specific about which directories.** "You're listed on Yelp and Google but missing from BBB, Angi, and Facebook Business" is actionable. "Improve your directory presence" is not.
-2. **Compare to competitors.** "Your competitor [Name] has 87 Google reviews at 4.7 stars. You have 12 reviews at 4.2 stars. This review gap is likely costing you Local Pack visibility."
-3. **Reference real review content.** "Three of your negative reviews mention long wait times -- this is a specific issue to address."
-4. **Flag NAP inconsistencies by directory.** Show the table of what's right and wrong where.
-5. **Note if local SEO is not applicable.** If the business is purely online, note this and provide a brief assessment of any local signals that still apply (reviews, directory presence for credibility).
+1. **Be specific about which directories.** "Listed on Yelp and Google but missing from BBB, Angi, and Facebook Business" is actionable. "Improve directory presence" is not.
+2. **Compare to competitors.** "Competitor [Name] has 87 Google reviews at 4.7 stars vs the brand's 12 at 4.2 -- a gap affecting Local Pack and local AI recommendations."
+3. **Reference real review content.** "Three negative reviews mention long wait times -- a specific issue to address."
+4. **Flag NAP inconsistencies by directory.** Inconsistent NAP is an entity-consistency problem; route it to the Entity Builder. Show the table of what's right and wrong where.
+5. **Skip if not applicable.** For purely-online brands, state that local SEO does not apply and move on -- do not pad the plan with irrelevant local items.

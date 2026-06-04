@@ -1,12 +1,12 @@
 ---
 name: Content SEO
 version: 1.0.0
-description: On-page content analysis framework including keyword gap methodology, content quality and E-E-A-T evaluation, URL structure assessment, blog analysis, and competitor content comparison. Used by Report Writer, SEO Strategist, and Quality Reviewer agents.
+description: On-page content analysis framework including topic/keyword gap methodology, content quality and E-E-A-T evaluation, URL structure assessment, blog analysis, and competitor content comparison. Used by the AEO Strategist, Answer-Content Builder, and Content-Brief Builder agents.
 ---
 
 # Content SEO Skill
 
-This skill provides the framework for evaluating on-page content quality, identifying keyword opportunities, and assessing E-E-A-T (Experience, Expertise, Authoritativeness, Trustworthiness) signals. Content SEO analysis bridges what the site currently communicates with what it should communicate to rank and convert.
+This skill provides the framework for evaluating on-page content quality, identifying topic/keyword opportunities, and assessing E-E-A-T (Experience, Expertise, Authoritativeness, Trustworthiness) signals. For an AEO program, content quality bridges what the brand currently communicates with what it must communicate to be extracted and cited by AI answer engines. Topical depth and E-E-A-T are direct inputs to citation-worthiness.
 
 ## On-Page Content Analysis Framework
 
@@ -194,7 +194,7 @@ If the site has a blog or resource section:
 
 When comparing content across competitors, use this format:
 
-| Factor | Client | Competitor 1 | Competitor 2 | Competitor 3 |
+| Factor | Brand | Competitor 1 | Competitor 2 | Competitor 3 |
 |--------|--------|--------------|--------------|--------------|
 | Service pages | [count] | [count] | [count] | [count] |
 | Blog posts | [count] | [count] | [count] | [count] |
@@ -216,10 +216,10 @@ When comparing content across competitors, use this format:
 
 **Overall Content SEO Score:** Weighted average, mapped to 1-10 scale.
 
-## Report Writing Guidelines for Content SEO
+## Analysis & Plan Guidelines for Content SEO
 
-1. **Reference actual content.** Quote specific headlines, sentences, or sections from the site. "Your About page says 'We are a team of professionals' -- this could be strengthened with specific credentials, years of experience, and case studies."
-2. **Frame gaps as opportunities.** "You don't currently have a page targeting 'emergency plumber [city]' -- this is a high-intent search term your competitors are ranking for."
-3. **Prioritize by impact.** Lead with the changes that will have the biggest effect on rankings and conversions.
-4. **Be specific in recommendations.** "Add a FAQ section to your kitchen remodeling page with these 5 questions your customers commonly ask" is actionable. "Improve your content" is not.
-5. **Connect content to business goals.** "Adding case studies with specific results (e.g., '23% energy savings') builds E-E-A-T signals and gives prospects confidence to call."
+1. **Reference actual content.** Quote specific headlines, sentences, or sections from the site. "The About page says 'We are a team of professionals' -- strengthen with named experts, credentials, and quantified case studies to raise E-E-A-T and citation-worthiness."
+2. **Frame gaps as buildable plan items.** Tie each gap to a target page and an artifact type (answer-content, content-brief, schema). "No page answers '[priority buyer query]' -- competitors own this answer; create answer-first content + FAQ schema."
+3. **Prioritize by AEO impact.** Lead with changes that most improve extractability and citation: answer-first rewrites of high-value pages, topical clusters, original data.
+4. **Be specific.** "Add a 6-question FAQ block to /pricing answering the questions buyers ask AI assistants" is actionable. "Improve your content" is not.
+5. **Connect content to citation.** "Original data (e.g., a benchmark report) makes the page citation-worthy, so AI engines reference the brand as the source." Avoid sales/conversion framing -- this is an internal build plan.

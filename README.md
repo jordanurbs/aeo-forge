@@ -1,10 +1,13 @@
-# AEO & SEO Audit
+# Enterprise AEO Builder
 
-A Claude Code rig that generates AEO (Answer Engine Optimization) and SEO audit reports for businesses. Runs in two modes: **light mode** (AEO snapshot + cold email for prospecting) and **full mode** (complete 25-35 page branded report with executive summary, cover letter, and follow-up emails). Give it a URL -- it crawls the site, calls free APIs for real metrics, analyzes AI search readiness, compares competitors, and produces the selected deliverable package.
+A Claude Code rig that helps an internal team continuously improve their brand's presence in AI search (ChatGPT, Perplexity, Google AI Overviews, Gemini, Copilot, Claude). It runs in two stages:
 
-**AEO is the lead, not a section.** Most SEO agencies still don't assess how businesses show up in AI search engines like ChatGPT, Perplexity, and Google AI Overviews. This audit does. The AEO assessment is what makes your outreach stand out.
+1. **Plan (`/aeo-plan`)** -- researches your site and competitors, runs a deep AEO analysis, and produces a prioritized, traceable **AEO improvement plan**. You review and approve it, and select which items to build.
+2. **Build (`/aeo-build`)** -- generates **ready-to-ship artifacts** for the items you selected: stacked JSON-LD schema, answer-first content blocks, metadata, an entity knowledge graph, a measurement pack, content briefs, and (optionally) `llms.txt` and an edge-injection config. Everything is validated before an implementation manifest is written.
 
-Built for the "did the work first" sales motion: run the audit on a prospect without asking permission, send the executive summary cold, close the deal when they ask "can you fix this?"
+This is an **internal tool**, not a sales asset. No cold outreach, cover letters, pricing, or "deliverable to sell" -- the output is work product your team ships.
+
+**AEO is the whole point.** Every artifact targets being *cited* by answer engines, not just ranking in a list of links.
 
 ## Requirements
 
@@ -12,135 +15,104 @@ Built for the "did the work first" sales motion: run the audit on a prospect wit
 
 ## Setup
 
-1. Clone this repo
-2. Open the `aeo-audit/` directory in Claude Code
-3. Run `/setup` to configure your branding, niche, pricing, and optional API key
-4. You're ready to run audits
+1. Clone this repo and open the `aeo-forge/` directory in Claude Code
+2. Run `/setup` to configure your brand profile (domains, entity signals, AEO targets, tech stack, governance), or copy `config/brand-profile.example.md` to `config/brand-profile.md` and edit it
+3. You're ready
 
 ## Usage
 
-### Run an audit
+### Stage 1 -- Generate the plan
 
 ```
-/run-audit
+/aeo-plan
 ```
 
-You'll be asked for:
-- Business website URL
-- Competitor URLs (or "auto-find")
-- Target location (city/region)
-- Prospect logo URL (optional, full mode only)
-- Mode: light or full
+Runs the research + analysis pipeline and writes a prioritized improvement plan you approve:
 
-The rig runs a 10-agent pipeline:
+1. **Web Crawler** -- crawls your site for technical + answer-readiness signals
+2. **API Caller** -- PageSpeed, TLS/SSL, W3C, Wayback, WHOIS (real metrics, no fabrication)
+3. **Competitor Researcher** -- benchmarks 2-3 competitors' AEO posture
+4. **AEO Analyst** -- the centerpiece AI search readiness assessment
+5. **AEO Strategist** -- synthesizes everything into `plan/aeo-plan.md` (prioritized, artifact-mapped backlog)
 
-1. **Web Crawler** -- crawls the site via WebFetch for HTML analysis, meta tags, schema, headings
-2. **API Caller** -- calls free APIs (PageSpeed, TLS/SSL via curl, W3C Validator, Wayback, WHOIS) for real metrics
-3. **Competitor Researcher** -- finds and analyzes 2-3 competitors
-4. **AEO Analyst** -- deep-dive AI search readiness assessment (the star analysis)
-5. **SEO Strategist** -- synthesizes all research into scoring framework + action plan
-6. **Report Writer** (x5) -- writes AEO assessment, technical audit, content analysis, local SEO, competitor comparison
-7. **Report Designer** -- creates visual design brief for branded PDF
-8. **Report Builder** -- builds report.html, executive-summary.html, follow-up emails
-9. **Design Reviewer** -- validates HTML layout, typography, and design brief adherence
-10. **Cover Letter Writer** -- personalized outreach letter (150-250 words, 3 subject lines, AEO-led)
-11. **Quality Reviewer** -- validates everything before delivery
+Then you review the plan and select which item IDs to build.
 
-Output lands in `output/<client-slug>/`.
+### Stage 2 -- Build the artifacts
+
+```
+/aeo-build
+```
+
+Generates and validates artifacts for the selected items:
+
+- **Answer-Content Builder** -- answer-first FAQ/definition/comparison/how-to blocks
+- **Schema Builder** -- stacked, validated JSON-LD per page (+ paste-ready snippets, optional edge-injection config)
+- **Metadata Builder** -- titles, descriptions, OG/Twitter, freshness fields
+- **Entity Builder** -- Organization knowledge graph (`sameAs`) + cross-domain consistency report
+- **Measurement Builder** -- tracked prompt set + measurement plan + bot-log monitoring snippet
+- **Content-Brief Builder** -- specs for net-new content your writers create
+- **llms.txt Builder** -- optional, low-priority agent index
+- **Artifact Validator** -- gate: JSON-LD validity, schema/visible-text parity, answer-first conformance, entity consistency, traceability
+- **Manifest/Report Builder** -- implementation manifest (how to deploy each artifact) + optional internal stakeholder summary
 
 ## What You Get
 
 ```
-output/<client-slug>/
-  README.md                          # Table of contents + delivery checklist
-  plan.md                            # Approved audit plan
+output/<brand-slug>/
+  README.md                          # Table of contents + deploy checklist
+  plan.md                            # Run config + build selection
   research/
-    site-crawl.md                    # Manual crawl analysis
-    tool-data.md                     # Raw API data (PageSpeed, TLS/SSL, W3C, WHOIS, Wayback)
-    competitor-analysis.md           # Competitor research
-    aeo-analysis.md                  # AEO deep-dive (the centerpiece)
-  strategy/
-    audit-framework.md               # Scores, keyword gaps, priority matrix, action plan
-  report/
-    aeo-assessment.md                # Section 1: AEO Assessment (6-8 pages) -- THE LEAD
-    technical-audit.md               # Section 2: Technical SEO (8-10 pages)
-    content-analysis.md              # Section 3: On-Page Content (6-8 pages)
-    local-seo-scorecard.md           # Section 4: Local SEO (4-6 pages)
-    competitor-comparison.md         # Section 5: Competitor Comparison (3-5 pages)
-  design/
-    report-brief.md                  # Visual design brief
-  sales/
-    cover-letter.md                  # Outreach letter (leads with AEO findings)
-    follow-up-emails.md              # 3-email follow-up sequence
-  deliverables/
-    report.html                      # Full branded report (open > print > PDF)
-    executive-summary.html           # One-page summary (open > print > PDF)
-```
-
-### Light Mode Output
-
-```
-output/<client-slug>/
-  plan.md                            # Audit plan (mode: light)
-  research/
-    site-crawl.md                    # Manual crawl analysis
+    site-crawl.md                    # Crawl analysis (technical + answer-readiness)
     tool-data.md                     # Raw API data
-    competitor-analysis.md           # Competitor research
-    aeo-analysis.md                  # AEO deep-dive
-  sales/
-    aeo-snapshot.md                  # 800-word AEO summary for outreach
-    cold-email.md                    # Cold outreach email + 3 subject lines
+    competitor-analysis.md           # Competitor AEO benchmarking
+    aeo-analysis.md                  # AEO deep-dive (the centerpiece)
+  plan/
+    aeo-plan.md                      # Prioritized improvement plan (APPROVAL GATE)
+  artifacts/
+    README.md                        # Implementation manifest
+    schema/                          # *.json + *.html snippets + INDEX.md
+    content/                         # answer-first blocks (.md + .html, schema-matched)
+    metadata/                        # meta-tags.md
+    entity/                          # knowledge-graph.json + consistency-report.md
+    measurement/                     # prompt-set.md + measurement-plan.md + bot-log-snippet
+    content-briefs/                  # *.md
+    llms.txt                         # optional, low-priority
+    edge/                            # optional Cloudflare Worker / injection config
+  report/
+    internal-summary.*               # optional stakeholder summary
 ```
 
-Light mode runs research + AEO analysis only, then produces a concise snapshot and cold email. Research data is saved so upgrading to full mode later reuses it.
+## What Actually Moves AI Citations (2026)
 
-### Real API Data
+The rig is built around evidence-based levers, not 2023-era SEO:
 
-The audit uses real metrics from free APIs -- no fabricated data:
+- **Schema stacking** -- FAQPage alone shows ~+2.7x citation lift; stacking `Article + FAQPage + HowTo + Organization + BreadcrumbList + ItemList` on key pages compounds it.
+- **Answer-first content** -- a direct 40-60 word answer at the top; question-form headings; AI Overviews cite opening content ~55% of the time.
+- **Visible-text / JSON-LD parity** -- FAQ/HowTo schema must mirror visible text exactly; mismatches are a compliance risk.
+- **Valid schema only** -- malformed JSON-LD is a negative trust signal, so every block is parsed and validated.
+- **Entity / single source of truth** -- a canonical `Organization` with `sameAs` and consistent facts across properties.
+- **Freshness** -- `dateModified`, visible "last updated", recent stats; quarterly refresh.
+- **Measurement shift** -- track citation frequency / AI Overview presence / AI-referred sessions, not just rank.
+- **`llms.txt`** is included but **optional and low-priority**: major search/answer crawlers largely ignore it; only application agents (Claude Desktop, Cursor) read it.
+
+## Real API Data
 
 | Tool | What It Provides |
 |------|-----------------|
 | Google PageSpeed Insights | Core Web Vitals (LCP, CLS, INP), performance score, mobile + desktop |
-| TLS/SSL (curl -v) | TLS version, certificate details, cipher info (SSL Labs used as cache-only bonus) |
+| TLS/SSL (curl -v) | TLS version, certificate details, cipher info |
 | W3C HTML Validator | HTML validation errors/warnings |
 | Wayback Machine | Site history, domain age indicator |
-| WHOIS (RDAP -> Who-Dat -> whois) | Domain registration, age, expiration (multi-source fallback chain) |
-
-### Creating PDFs
-
-The HTML deliverables are print-optimized:
-1. Open `deliverables/report.html` in a browser
-2. Print (Cmd+P / Ctrl+P)
-3. Save as PDF
-
-Same for `executive-summary.html`.
-
-## How the Sales Motion Works
-
-1. **Pick a niche** -- dentists, plumbers, realtors, restaurants, coaches
-2. **Run `/run-audit`** on 10-20 businesses in that niche. Use light mode for initial prospecting, full mode when a prospect responds.
-3. **Send the executive summary cold**: "I checked how your business shows up when people ask AI assistants like ChatGPT and Perplexity for recommendations..."
-4. **The audit sells itself.** When the prospect sees 25+ pages of specific findings with real data about their site, they ask: "Can you fix this?"
-5. **That question is the close.**
-
-The AEO angle is what gets the email opened. Every business owner has been pitched SEO. Almost none have been told how they show up in AI search.
-
-## Revenue Model
-
-| Service | Price Range |
-|---------|-------------|
-| Audit report (standalone) | $500 - $1,500 |
-| Audit + implementation plan | $2,000 - $3,500 |
-| Ongoing AEO/SEO management | $750 - $2,000/mo |
-| Quarterly re-audit | $500 - $1,000 |
+| WHOIS (RDAP -> Who-Dat -> whois) | Domain registration, age, expiration |
 
 ## Configuration
 
-Your settings live in `config/member-profile.md`. Run `/setup` to configure, or edit directly.
+Your settings live in `config/brand-profile.md` (template: `config/brand-profile.example.md`). Run `/setup` to configure, or edit directly.
 
 ## Commands
 
 | Command | What it does |
 |---------|-------------|
-| `/setup` | Configure your branding, niche, pricing, and API key |
-| `/run-audit` | Generate a complete AEO & SEO audit for a business |
+| `/setup` | Configure the brand profile |
+| `/aeo-plan` | Research + AEO analysis -> a prioritized improvement plan (approval gate) |
+| `/aeo-build` | Generate validated artifacts for the selected plan items |
