@@ -15,7 +15,7 @@ This is an **internal tool**, not a sales asset. No cold outreach, cover letters
 
 ## Setup
 
-1. Clone this repo and open the `aeo-forge/` directory in Claude Code
+1. Clone this repo and open the `aeo-audit/` directory in Claude Code
 2. Run `/setup` to configure your brand profile (domains, entity signals, AEO targets, tech stack, governance), or copy `config/brand-profile.example.md` to `config/brand-profile.md` and edit it
 3. You're ready
 
@@ -70,6 +70,8 @@ output/<brand-slug>/
     aeo-plan.md                      # Prioritized improvement plan (APPROVAL GATE)
   artifacts/
     README.md                        # Implementation manifest
+    build-route.md                   # Selected item routing + expected outputs
+    validation.md                    # Deterministic validation report
     schema/                          # *.json + *.html snippets + INDEX.md
     content/                         # answer-first blocks (.md + .html, schema-matched)
     metadata/                        # meta-tags.md
@@ -95,6 +97,16 @@ The rig is built around evidence-based levers, not 2023-era SEO:
 - **Measurement shift** -- track citation frequency / AI Overview presence / AI-referred sessions, not just rank.
 - **`llms.txt`** is included but **optional and low-priority**: major search/answer crawlers largely ignore it; only application agents (Claude Desktop, Cursor) read it.
 
+## Quality & Traceability
+
+Every run should finish with an explicit state:
+
+- **COMPLETE** -- all required research and selected artifacts exist.
+- **PARTIAL_CONFIDENCE** -- useful output exists, but one or more research inputs or checks failed; gaps are listed in the plan/report.
+- **BLOCKED** -- required evidence or validation is missing; artifacts should not ship.
+
+Plan items and artifacts should label evidence sources as `brand-profile`, `site-crawl`, `tool-data`, `competitor-analysis`, `aeo-analysis`, or `inference`. Claims about ratings, customer counts, credentials, certifications, profiles, or entity facts must trace to supplied or observed evidence.
+
 ## Real API Data
 
 | Tool | What It Provides |
@@ -116,3 +128,19 @@ Your settings live in `config/brand-profile.md` (template: `config/brand-profile
 | `/setup` | Configure the brand profile |
 | `/aeo-plan` | Research + AEO analysis -> a prioritized improvement plan (approval gate) |
 | `/aeo-build` | Generate validated artifacts for the selected plan items |
+
+## Local Validation
+
+After `/aeo-build`, run:
+
+```
+python3 scripts/validate-artifacts.py output/<brand-slug> --write-report
+```
+
+This performs deterministic checks for JSON parsing, selected item coverage, per-artifact `AEO-xxx` references, source labels, stacked page schema, schema/entity consistency, and FAQ/HowTo visible-text parity before the agent validation gate.
+
+Smoke-test the validator with the included fixture:
+
+```
+python3 scripts/validate-artifacts.py fixtures/sample-output/acme-analytics
+```

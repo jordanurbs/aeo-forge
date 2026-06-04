@@ -1,0 +1,47 @@
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://example.com/#organization",
+      "name": "Acme Analytics",
+      "url": "https://example.com",
+      "description": "Acme Analytics helps enterprise teams monitor product usage and revenue signals in one workspace.",
+      "sameAs": [
+        "https://www.linkedin.com/company/example"
+      ]
+    },
+    {
+      "@type": "WebPage",
+      "@id": "https://example.com/#webpage",
+      "url": "https://example.com/",
+      "name": "Acme Analytics",
+      "isPartOf": {
+        "@id": "https://example.com/#website"
+      },
+      "about": {
+        "@id": "https://example.com/#organization"
+      }
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://example.com/#faq-aeo-001",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "How does Acme Analytics connect product analytics and revenue data?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Acme Analytics connects product analytics and revenue data by giving teams one workspace for usage, account, and revenue signals. This helps product, marketing, and revenue teams understand which customer behaviors relate to growth, retention, and expansion."
+          }
+        }
+      ]
+    }
+  ],
+  "planItemId": "AEO-001",
+  "evidenceSources": [
+    "brand-profile",
+    "site-crawl",
+    "aeo-analysis"
+  ]
+}
