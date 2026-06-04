@@ -92,6 +92,12 @@ Ask for the following. Use AskQuestion for structured choices. Collect in this o
     - If no: "It's optional -- PageSpeed works without a key at lower rate limits, fine for one brand at a time. You can add it later in config/brand-profile.md."
 44. Keyword-volume API key? (DataForSEO base64 "login:password" or Semrush key)
     - If no: "Optional -- without it, demand signals come from free Google Autocomplete + People-Also-Ask. A key just adds numeric monthly search volume. You can add it later in config/brand-profile.md."
+45. Perplexity API key? (For /aeo-track measured citation tracking -- returns answers with sources; the best citation signal)
+    - If no: "Optional. Without it, /aeo-track runs in manual mode (a logging template + WebSearch directional proxy). Add it later in config/brand-profile.md to unlock measured runs."
+46. OpenAI API key? (For /aeo-track citation tracking via OpenAI web search)
+    - If no: "Optional -- same manual fallback as above."
+47. SerpAPI key? (For /aeo-track's Google AI Overviews SERP proxy; a DataForSEO key also works)
+    - If no: "Optional -- same manual fallback as above."
 
 ### Step 3: Write Profile
 
