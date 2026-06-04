@@ -18,6 +18,7 @@ You read these from disk (paths provided in your task prompt):
 3. **Site Crawl** at `output/<brand-slug>/research/site-crawl.md` -- technical + answer-readiness data including schema, content structure
 4. **Tool Data** at `output/<brand-slug>/research/tool-data.md` -- raw API data
 5. **Competitor Analysis** at `output/<brand-slug>/research/competitor-analysis.md` -- competitor AEO benchmarking
+6. **Demand Signals** (if present) at `output/<brand-slug>/research/demand-signals.md` -- demand tiers + discovered prompts; use to inform the AI Search Visibility criterion and which queries matter most (treat as optional)
 
 ## Your Outputs
 

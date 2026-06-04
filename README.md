@@ -32,8 +32,9 @@ Runs the research + analysis pipeline and writes a prioritized improvement plan 
 1. **Web Crawler** -- crawls your site for technical + answer-readiness signals
 2. **API Caller** -- PageSpeed, TLS/SSL, W3C, Wayback, WHOIS (real metrics, no fabrication)
 3. **Competitor Researcher** -- benchmarks 2-3 competitors' AEO posture
-4. **AEO Analyst** -- the centerpiece AI search readiness assessment
-5. **AEO Strategist** -- synthesizes everything into `plan/aeo-plan.md` (prioritized, artifact-mapped backlog)
+4. **Demand Researcher** -- gathers demand signals (Google Autocomplete + People-Also-Ask, plus keyword search volume if you supply a DataForSEO/Semrush key) to weight which topics/prompts to prioritize
+5. **AEO Analyst** -- the centerpiece AI search readiness assessment
+6. **AEO Strategist** -- synthesizes everything into `plan/aeo-plan.md` (prioritized, artifact-mapped backlog; each item carries a Demand tier and is ranked by Demand x citability gap)
 
 Then you review the plan and select which item IDs to build.
 
@@ -65,6 +66,7 @@ output/<brand-slug>/
     site-crawl.md                    # Crawl analysis (technical + answer-readiness)
     tool-data.md                     # Raw API data
     competitor-analysis.md           # Competitor AEO benchmarking
+    demand-signals.md                # Demand tiers per topic/query (autocomplete/PAA + optional volume)
     aeo-analysis.md                  # AEO deep-dive (the centerpiece)
   plan/
     aeo-plan.md                      # Prioritized improvement plan (APPROVAL GATE)

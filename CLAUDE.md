@@ -24,6 +24,7 @@ This is an **internal tool**, not a sales asset. There is no cold outreach, cove
 | **Web Crawler** | Crawls the brand's site + key pages via WebFetch (meta, schema, headings, answer-readiness) | Plan |
 | **API Caller** | Calls free APIs (PageSpeed, TLS/SSL, W3C, Wayback, WHOIS) via curl for real metrics | Plan |
 | **Competitor Researcher** | Benchmarks 2-3 competitors' AEO posture | Plan |
+| **Demand Researcher** | Gathers demand signals (autocomplete/PAA + optional keyword volume) to weight prioritization | Plan |
 | **AEO Analyst** | Deep-dive AI search readiness assessment -- the star analysis | Plan |
 | **AEO Strategist** | Synthesizes research into the prioritized, artifact-mapped improvement plan | Plan |
 | **Schema Builder** | Generates stacked, validated JSON-LD per page (+ paste-ready snippets) | Build |
@@ -47,7 +48,7 @@ This is an **internal tool**, not a sales asset. There is no cold outreach, cove
 5. **Track status, not content.** After an agent finishes, you need: (a) status, (b) file paths, (c) issues. NOT file contents.
 6. **The Validator reads from disk.** Pass it the output directory path.
 7. **For artifacts, spawn ONE builder per artifact type.** Each spawn writes its own files.
-8. **Use max_turns on Task calls.** Web Crawler: 18, API Caller: 15, Competitor Researcher: 12, AEO Analyst: 15, AEO Strategist: 15, Schema Builder: 20, Answer-Content Builder: 20, Metadata Builder: 12, Entity Builder: 12, Measurement Builder: 10, Content-Brief Builder: 15, llms.txt Builder: 8, Artifact Validator: 20, Manifest/Report Builder: 15.
+8. **Use max_turns on Task calls.** Web Crawler: 18, API Caller: 15, Competitor Researcher: 12, Demand Researcher: 12, AEO Analyst: 15, AEO Strategist: 15, Schema Builder: 20, Answer-Content Builder: 20, Metadata Builder: 12, Entity Builder: 12, Measurement Builder: 10, Content-Brief Builder: 15, llms.txt Builder: 8, Artifact Validator: 20, Manifest/Report Builder: 15.
 9. **Use workspace-root-resolved paths for agent outputs.** Relative paths are acceptable in human docs, but Task prompts should pass absolute paths or clearly rooted paths so agents cannot write into the wrong working directory.
 10. **Verify files after every agent returns.** A SUCCESS status is not enough. Check every expected output path exists before advancing. If a file is missing, do one focused retry that names the exact missing path; if still missing, record an evidence gap or set the run to BLOCKED according to the quality model.
 11. **Write routing and validation artifacts.** For `/aeo-build`, persist `artifacts/build-route.md` before builders run and `artifacts/validation.md` after deterministic validation so debugging does not depend on terminal output.
@@ -121,6 +122,7 @@ of evidence. Use these source labels consistently:
 - `site-crawl` -- observed on the brand site
 - `tool-data` -- API/curl measurements
 - `competitor-analysis` -- observed competitor evidence
+- `demand-signals` -- autocomplete/PAA/keyword-volume demand evidence (prioritization input only)
 - `aeo-analysis` -- synthesized finding from the analysis stage
 - `inference` -- reasoned recommendation not directly observed; must be labeled
 
@@ -147,23 +149,24 @@ claims.
 4. Present the plan-run scope, wait for approval.
 5. Save run config to `output/<brand-slug>/plan.md` (domains, priority URLs, competitors, scope, date, PageSpeed key if present, and initial `Run state: COMPLETE`).
 
-### Phase 2: Research (3 in parallel)
+### Phase 2: Research (4 in parallel)
 6. Spawn **Web Crawler** (max_turns: 18) -> `research/site-crawl.md`
 7. Spawn **API Caller** (max_turns: 15) -> `research/tool-data.md`
 8. Spawn **Competitor Researcher** (max_turns: 12) -> `research/competitor-analysis.md`
-9. Verify all three exist. For any missing file: re-spawn with max_turns: 10 and a focused prompt; if still missing, write a minimal placeholder noting the gap, set `Run state: PARTIAL_CONFIDENCE`, and require the final plan summary to list the missing evidence.
+9. Spawn **Demand Researcher** (max_turns: 12) -> `research/demand-signals.md` (prioritization enhancer; non-blocking)
+10. Verify the three required files exist (site-crawl, tool-data, competitor-analysis). For any missing required file: re-spawn with max_turns: 10 and a focused prompt; if still missing, write a minimal placeholder noting the gap, set `Run state: PARTIAL_CONFIDENCE`, and require the final plan summary to list the missing evidence. `demand-signals.md` is non-blocking: if absent after one retry, note the gap and treat downstream Demand as `Unknown`.
 
 ### Phase 2.5: AEO Analysis
-10. Spawn **AEO Analyst** (max_turns: 15) -> `research/aeo-analysis.md`. Verify it exists.
+11. Spawn **AEO Analyst** (max_turns: 15) -> `research/aeo-analysis.md` (also reads `demand-signals.md` if present). Verify it exists.
 
 ### Phase 3: Plan Synthesis
-11. Spawn **AEO Strategist** (max_turns: 15) -> `plan/aeo-plan.md` (prioritized, artifact-mapped backlog with the schema from the `aeo-plan-structure` skill). Verify it exists.
+12. Spawn **AEO Strategist** (max_turns: 15) -> `plan/aeo-plan.md` (prioritized, artifact-mapped backlog with the schema from the `aeo-plan-structure` skill; sets each item's `Demand` from `demand-signals.md` and weights prioritization by Demand x citability gap). Verify it exists.
 
 ### Phase 4: Approval Gate (MANDATORY)
-12. Present the plan summary to the user: run state/confidence, overall AEO score or score range, top evidence gaps, top opportunities, and the P1/P2 buildable items.
-13. Ask the user to **review/approve** and **select which item IDs to build** (default: all Buildable P1 + P2).
-14. Record the selection in `output/<brand-slug>/plan.md` under a `## Build Selection` section.
-15. STOP. Do not build artifacts until the user runs `/aeo-build` (or explicitly approves continuing).
+13. Present the plan summary to the user: run state/confidence, overall AEO score or score range, top evidence gaps, top opportunities, and the P1/P2 buildable items.
+14. Ask the user to **review/approve** and **select which item IDs to build** (default: all Buildable P1 + P2).
+15. Record the selection in `output/<brand-slug>/plan.md` under a `## Build Selection` section.
+16. STOP. Do not build artifacts until the user runs `/aeo-build` (or explicitly approves continuing).
 
 ## Workflow: /aeo-build (Stage 2)
 
@@ -238,6 +241,7 @@ output/<brand-slug>/
     site-crawl.md                    # Manual crawl analysis
     tool-data.md                     # Raw API data
     competitor-analysis.md           # Competitor benchmarking
+    demand-signals.md                # Demand tiers per topic/query (autocomplete/PAA + optional volume)
     aeo-analysis.md                  # AEO deep-dive (the centerpiece)
   plan/
     aeo-plan.md                      # Prioritized improvement plan (APPROVAL GATE)
@@ -264,6 +268,7 @@ output/<brand-slug>/
 | AEO Optimization | `.claude/skills/aeo-optimization/SKILL.md` | AEO Analyst, AEO Strategist, builders, Validator |
 | Technical SEO | `.claude/skills/technical-seo/SKILL.md` | Web Crawler, API Caller |
 | Content SEO | `.claude/skills/content-seo/SKILL.md` | AEO Strategist, Answer-Content/Content-Brief Builders |
+| Demand Signals | `.claude/skills/demand-signals/SKILL.md` | Demand Researcher, AEO Strategist |
 | Local SEO | `.claude/skills/local-seo/SKILL.md` | Competitor Researcher (optional for local brands) |
 | Schema Authoring | `.claude/skills/schema-authoring/SKILL.md` | Schema Builder, Entity Builder, Metadata Builder, Validator |
 | llms.txt Authoring | `.claude/skills/llms-txt/SKILL.md` | llms.txt Builder |
@@ -276,8 +281,8 @@ output/<brand-slug>/
 |------|-------|
 | This file (orchestration hub) | `CLAUDE.md` |
 | Commands | `.claude/commands/aeo-plan.md`, `aeo-build.md`, `setup.md` |
-| Plan agents | `.claude/agents/web-crawler.md`, `api-caller.md`, `competitor-researcher.md`, `aeo-analyst.md`, `aeo-strategist.md` |
+| Plan agents | `.claude/agents/web-crawler.md`, `api-caller.md`, `competitor-researcher.md`, `demand-researcher.md`, `aeo-analyst.md`, `aeo-strategist.md` |
 | Build agents | `.claude/agents/schema-builder.md`, `answer-content-builder.md`, `metadata-builder.md`, `entity-builder.md`, `measurement-builder.md`, `content-brief-builder.md`, `llms-txt-builder.md`, `artifact-validator.md`, `manifest-builder.md` |
-| Skills | `.claude/skills/aeo-optimization/`, `technical-seo/`, `content-seo/`, `local-seo/`, `schema-authoring/`, `llms-txt/`, `aeo-plan-structure/`, `qas-checklist/` |
+| Skills | `.claude/skills/aeo-optimization/`, `technical-seo/`, `content-seo/`, `demand-signals/`, `local-seo/`, `schema-authoring/`, `llms-txt/`, `aeo-plan-structure/`, `qas-checklist/` |
 | Brand config | `config/brand-profile.md` (template: `config/brand-profile.example.md`) |
 | Output | `output/<brand-slug>/` |
