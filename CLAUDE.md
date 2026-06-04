@@ -48,6 +48,10 @@ This is an **internal tool**, not a sales asset. There is no cold outreach, cove
 6. **The Validator reads from disk.** Pass it the output directory path.
 7. **For artifacts, spawn ONE builder per artifact type.** Each spawn writes its own files.
 8. **Use max_turns on Task calls.** Web Crawler: 18, API Caller: 15, Competitor Researcher: 12, AEO Analyst: 15, AEO Strategist: 15, Schema Builder: 20, Answer-Content Builder: 20, Metadata Builder: 12, Entity Builder: 12, Measurement Builder: 10, Content-Brief Builder: 15, llms.txt Builder: 8, Artifact Validator: 20, Manifest/Report Builder: 15.
+9. **Use workspace-root-resolved paths for agent outputs.** Relative paths are acceptable in human docs, but Task prompts should pass absolute paths or clearly rooted paths so agents cannot write into the wrong working directory.
+10. **Verify files after every agent returns.** A SUCCESS status is not enough. Check every expected output path exists before advancing. If a file is missing, do one focused retry that names the exact missing path; if still missing, record an evidence gap or set the run to BLOCKED according to the quality model.
+11. **Write routing and validation artifacts.** For `/aeo-build`, persist `artifacts/build-route.md` before builders run and `artifacts/validation.md` after deterministic validation so debugging does not depend on terminal output.
+12. **Separate workflow completeness from evidence confidence.** Use `Build state` for whether selected artifacts were generated and validated. Use `Confidence state` for whether the evidence base is complete, partial, or blocked.
 
 ### How to Spawn Agents (Context-Safe Pattern)
 
@@ -79,6 +83,61 @@ Task tool:
 
 WRONG -- orchestrator reads everything and pastes it in (doubles context usage).
 
+## Quality Model
+
+Every run must carry an explicit confidence state so missing evidence does not
+produce overconfident recommendations:
+
+- **COMPLETE** -- all required research files and selected artifacts exist, with no
+  critical validation gaps.
+- **PARTIAL_CONFIDENCE** -- the workflow can proceed, but one or more research
+  inputs, API calls, competitor checks, or optional validations failed. The plan
+  and final report must list the gaps and avoid precise scoring unsupported by
+  evidence.
+- **BLOCKED** -- a required file is missing, selected artifacts cannot be
+  generated, JSON-LD is malformed, schema/visible-text parity fails, or claims
+  cannot be traced to evidence. Do not ship artifacts in this state.
+
+Build runs also carry a separate build state:
+
+- **BUILD_COMPLETE** -- all selected artifacts exist, deterministic validation
+  passes, and the Artifact Validator approves the package.
+- **BUILD_PARTIAL** -- some selected artifacts were generated, but optional
+  builders or non-critical checks failed and the manifest lists the limitation.
+- **BUILD_BLOCKED** -- selected artifact coverage, JSON validity, parity,
+  traceability, or source support fails. Do not ship artifacts in this state.
+
+For fixture or smoke-test runs, set `Run type: fixture` or `Run type: sample dry
+run` in `plan.md`. Agents must preserve the fixture boundary, avoid production
+claims, and keep the confidence state at `PARTIAL_CONFIDENCE` unless real brand
+evidence is supplied.
+
+### Evidence & Traceability
+
+Recommendations, plan items, and generated artifacts must identify their source
+of evidence. Use these source labels consistently:
+
+- `brand-profile` -- supplied by `config/brand-profile.md`
+- `site-crawl` -- observed on the brand site
+- `tool-data` -- API/curl measurements
+- `competitor-analysis` -- observed competitor evidence
+- `aeo-analysis` -- synthesized finding from the analysis stage
+- `inference` -- reasoned recommendation not directly observed; must be labeled
+
+Any claim about ratings, counts, credentials, customers, certifications,
+authority profiles, or entity facts must trace to `brand-profile`, `site-crawl`,
+or another explicit research source. Unsupported claims are validation failures.
+
+### Canonical Entity Contract
+
+Before build agents produce schema or entity artifacts, the orchestrator should
+derive or record the canonical entity contract in `plan.md` or
+`artifacts/build-route.md`: Organization `@id`, WebSite `@id`, WebPage `@id`,
+canonical Person `@id` values, verified `sameAs` URLs, and claims that require
+approval. Schema and entity builders must use the same `@id` values and must not
+emit unverified `sameAs`, ratings, certifications, customer counts, or security
+claims.
+
 ## Workflow: /aeo-plan (Stage 1)
 
 ### Phase 1: Input & Planning
@@ -86,13 +145,13 @@ WRONG -- orchestrator reads everything and pastes it in (doubles context usage).
 2. Confirm/collect: brand URL(s), competitors (or "auto-find"), priority topics/queries.
 3. Create `brand-slug`; create `output/<brand-slug>/` with subdirs: `research/`, `plan/`.
 4. Present the plan-run scope, wait for approval.
-5. Save run config to `output/<brand-slug>/plan.md` (domains, competitors, scope, date, PageSpeed key if present).
+5. Save run config to `output/<brand-slug>/plan.md` (domains, priority URLs, competitors, scope, date, PageSpeed key if present, and initial `Run state: COMPLETE`).
 
 ### Phase 2: Research (3 in parallel)
 6. Spawn **Web Crawler** (max_turns: 18) -> `research/site-crawl.md`
 7. Spawn **API Caller** (max_turns: 15) -> `research/tool-data.md`
 8. Spawn **Competitor Researcher** (max_turns: 12) -> `research/competitor-analysis.md`
-9. Verify all three exist. For any missing file: re-spawn with max_turns: 10 and a focused prompt; if still missing, write a minimal placeholder noting the gap and proceed.
+9. Verify all three exist. For any missing file: re-spawn with max_turns: 10 and a focused prompt; if still missing, write a minimal placeholder noting the gap, set `Run state: PARTIAL_CONFIDENCE`, and require the final plan summary to list the missing evidence.
 
 ### Phase 2.5: AEO Analysis
 10. Spawn **AEO Analyst** (max_turns: 15) -> `research/aeo-analysis.md`. Verify it exists.
@@ -101,7 +160,7 @@ WRONG -- orchestrator reads everything and pastes it in (doubles context usage).
 11. Spawn **AEO Strategist** (max_turns: 15) -> `plan/aeo-plan.md` (prioritized, artifact-mapped backlog with the schema from the `aeo-plan-structure` skill). Verify it exists.
 
 ### Phase 4: Approval Gate (MANDATORY)
-12. Present the plan summary to the user: overall AEO score, top opportunities, and the P1/P2 buildable items.
+12. Present the plan summary to the user: run state/confidence, overall AEO score or score range, top evidence gaps, top opportunities, and the P1/P2 buildable items.
 13. Ask the user to **review/approve** and **select which item IDs to build** (default: all Buildable P1 + P2).
 14. Record the selection in `output/<brand-slug>/plan.md` under a `## Build Selection` section.
 15. STOP. Do not build artifacts until the user runs `/aeo-build` (or explicitly approves continuing).
@@ -115,26 +174,29 @@ Runs only after `plan/aeo-plan.md` exists and items are selected.
 2. Create `artifacts/` subdirs as needed: `schema/`, `content/`, `metadata/`, `entity/`, `measurement/`, `content-briefs/`, and optionally `edge/`.
 3. Group selected items by `Artifact type`.
 
-### Phase B2: Build Artifacts (parallel by type)
-4. Spawn **Schema Builder** (max_turns: 20) for `schema` items -> `artifacts/schema/*.json` + snippets + `INDEX.md`
-5. Spawn **Answer-Content Builder** (max_turns: 20) for `answer-content` items -> `artifacts/content/*.md` (+ matching HTML)
-6. Spawn **Metadata Builder** (max_turns: 12) for `metadata` items -> `artifacts/metadata/meta-tags.md`
-7. Spawn **Entity Builder** (max_turns: 12) for `entity` items -> `artifacts/entity/knowledge-graph.json` + `consistency-report.md`
-8. Spawn **Measurement Builder** (max_turns: 10) for `measurement` items -> `artifacts/measurement/*`
-9. Spawn **Content-Brief Builder** (max_turns: 15) for `content-brief` items -> `artifacts/content-briefs/*.md`
-10. If `llms-txt` selected: spawn **llms.txt Builder** (max_turns: 8) -> `artifacts/llms.txt` (+ `llms-full.txt`)
-11. If `edge-injection` selected: have the Schema Builder also emit `artifacts/edge/` config.
-12. Coordinate parity: Schema Builder and Answer-Content Builder must produce matched FAQ/HowTo pairs. Spawn Answer-Content first or pass shared item details so the visible text and JSON-LD match exactly.
+### Phase B2: Build Artifacts
+4. Spawn **Answer-Content Builder** first (max_turns: 20) for `answer-content` items -> `artifacts/content/*.md` (+ matching HTML). This visible text is the source Schema Builder mirrors for FAQ/HowTo parity.
+5. Spawn the remaining selected builders in parallel:
+   - **Schema Builder** (max_turns: 20) for `schema` items -> `artifacts/schema/*.json` + snippets + `INDEX.md`; if `edge-injection` selected, also emit `artifacts/edge/` config.
+   - **Metadata Builder** (max_turns: 12) for `metadata` items -> `artifacts/metadata/meta-tags.md`
+   - **Entity Builder** (max_turns: 12) for `entity` items -> `artifacts/entity/knowledge-graph.json` + `consistency-report.md`
+   - **Measurement Builder** (max_turns: 10) for `measurement` items -> `artifacts/measurement/*`
+   - **Content-Brief Builder** (max_turns: 15) for `content-brief` items -> `artifacts/content-briefs/*.md`
+   - **llms.txt Builder** (max_turns: 8), only if `llms-txt` selected -> `artifacts/llms.txt` (+ `llms-full.txt`)
+6. Every artifact must include the plan item ID (`AEO-xxx`) and a short evidence/source note.
+7. Write `artifacts/build-route.md` with the selected item IDs grouped by artifact type, expected output paths, build state initialized to `BUILD_IN_PROGRESS`, confidence state, fixture mode (if any), and the canonical entity contract.
 
 ### Phase B3: Validation Gate (MANDATORY)
-13. Spawn **Artifact Validator** (model: opus, max_turns: 20). It checks every artifact (see checklist below).
-14. If APPROVED: proceed. If BLOCKED: re-spawn the responsible builder(s) with the specific issues. Max 2 iterations. Malformed JSON-LD must be fixed or dropped -- never shipped.
+13. Run deterministic checks first when available (for example `python3 scripts/validate-artifacts.py output/<brand-slug> --write-report`). Treat JSON parse failures, missing selected item coverage, missing per-artifact `AEO-xxx` references, missing source labels, non-stacked page schema, non-standard schema properties, inconsistent entity `@id` values, or detected parity mismatches as `BUILD_BLOCKED`.
+14. Spawn **Artifact Validator** (max_turns: 20). It checks every artifact (see checklist below). Use an available high-reasoning model only when the execution environment supports explicit model selection.
+15. If APPROVED: proceed. If BLOCKED: re-spawn the responsible builder(s) with the specific issues. Max 2 iterations. Malformed JSON-LD or parity failures MUST be fixed or the artifact dropped before proceeding.
 
 ### Phase B4: Manifest & Output
-15. Spawn **Manifest/Report Builder** (max_turns: 15) -> `artifacts/README.md` (implementation manifest) + optional `report/internal-summary.*`.
-16. Verify all expected artifact files exist.
-17. Generate/update `output/<brand-slug>/README.md` (table of contents + deploy checklist).
-18. Report results: what was built, where it goes, and how to deploy + measure.
+16. Spawn **Manifest/Report Builder** (max_turns: 15) -> `artifacts/README.md` (implementation manifest) + optional `report/internal-summary.*`.
+17. Verify all expected artifact files exist.
+18. Generate/update `output/<brand-slug>/README.md` (table of contents + deploy checklist).
+19. Update build state in `plan.md` or `artifacts/build-route.md` (`BUILD_COMPLETE`, `BUILD_PARTIAL`, or `BUILD_BLOCKED`).
+20. Report results: confidence state, build state, what was built, what evidence gaps remain, where artifacts go, and how to deploy + measure.
 
 ## Validation Gate Checklist (Artifact Validator Owns This)
 
@@ -161,6 +223,7 @@ Runs only after `plan/aeo-plan.md` exists and items are selected.
 
 ### Traceability & Completeness
 - [ ] Every artifact references the plan item ID (`AEO-xxx`) it satisfies
+- [ ] Every material claim has a source label (`brand-profile`, `site-crawl`, `tool-data`, `competitor-analysis`, `aeo-analysis`, or `inference`)
 - [ ] All selected Buildable items have a corresponding artifact
 - [ ] Manifest maps each artifact to its target page + deploy method
 - [ ] `llms.txt` (if present) labeled optional/low-priority
@@ -180,6 +243,8 @@ output/<brand-slug>/
     aeo-plan.md                      # Prioritized improvement plan (APPROVAL GATE)
   artifacts/
     README.md                        # Implementation manifest
+    build-route.md                   # Selected item routing + expected outputs
+    validation.md                    # Deterministic validation report
     schema/                          # *.json + *.html snippets + INDEX.md
     content/                         # answer-first FAQ/definitions/comparisons/how-to (.md + .html)
     metadata/                        # meta-tags.md (per-page title/description/OG + freshness)
