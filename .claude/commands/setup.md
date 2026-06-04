@@ -90,6 +90,8 @@ Ask for the following. Use AskQuestion for structured choices. Collect in this o
 **API Keys (Optional)**
 43. Google PageSpeed API key? (Free at https://developers.google.com/speed/docs/insights/v5/get-started)
     - If no: "It's optional -- PageSpeed works without a key at lower rate limits, fine for one brand at a time. You can add it later in config/brand-profile.md."
+44. Keyword-volume API key? (DataForSEO base64 "login:password" or Semrush key)
+    - If no: "Optional -- without it, demand signals come from free Google Autocomplete + People-Also-Ask. A key just adds numeric monthly search volume. You can add it later in config/brand-profile.md."
 
 ### Step 3: Write Profile
 

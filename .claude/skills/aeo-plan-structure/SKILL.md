@@ -14,7 +14,7 @@ Defines the structure of the AEO improvement plan -- the human-approved gate bet
 - **Actionable:** each item is a concrete change, not a theme.
 - **Traceable:** each item cites the evidence (research finding) that justifies it.
 - **Buildable:** each item names the artifact type that implements it, so `/aeo-build` can route it.
-- **Prioritized:** ranked by impact vs effort so the team can choose confidently.
+- **Prioritized:** ranked by Demand x citability gap, then effort, so the team can choose confidently. (Demand comes from `demand-signals.md`; use `Unknown` and fall back to impact vs effort when it is absent.)
 
 ## Backlog Item Schema (REQUIRED for every item)
 
@@ -28,6 +28,7 @@ Each plan item is a row/block with these fields:
 | `Target pages` | The exact URLs/templates affected |
 | `Artifact type` | `schema` / `answer-content` / `metadata` / `entity` / `measurement` / `content-brief` / `llms-txt` / `edge-injection` / `off-site` |
 | `AEO criterion` | Which criterion it improves (Structured Data, Answer-Ready, Entity, Topical, Citation-Worthiness, Visibility) |
+| `Demand` | High / Medium / Low / Unknown -- from `demand-signals.md` for the item's topic/query (prioritization input, not a ranking claim) |
 | `Impact` | High / Medium / Low (expected lift to AI citation) |
 | `Effort` | Quick Win / Medium / High |
 | `Owner` | Suggested role (Eng / Content / SEO / Marketing) |
@@ -56,15 +57,18 @@ Each plan item is a row/block with these fields:
 ## Competitive Position
 [Short table: brand vs competitors on overall AEO + key criteria, from competitor analysis.]
 
+## Demand Snapshot
+[Short table of priority topics/queries with Demand tier (from demand-signals.md), and any new high-Demand prompts discovered worth targeting. Demand is a prioritization input only -- not a ranking claim. If demand-signals is absent, state that Demand is Unknown for this run.]
+
 ## Buyer-Journey Citation Map
 [For B2B/enterprise: target answers the brand should own at pre-funnel / TOFU / MOFU / BOFU.]
 
 ## Prioritized Backlog
 
 ### P1 -- Quick Wins (High Impact, Low Effort)
-| ID | Title | Evidence | Target pages | Artifact type | Criterion | Impact | Effort | Owner | Buildable |
-|----|-------|----------|--------------|---------------|-----------|--------|--------|-------|-----------|
-| AEO-001 | ... | ... | ... | schema | Structured Data | High | Quick Win | Eng | Yes |
+| ID | Title | Evidence | Target pages | Artifact type | Criterion | Demand | Impact | Effort | Owner | Buildable |
+|----|-------|----------|--------------|---------------|-----------|--------|--------|--------|-------|-----------|
+| AEO-001 | ... | ... | ... | schema | Structured Data | High | High | Quick Win | Eng | Yes |
 
 ### P2 -- Strategic Priorities (High Impact, Medium Effort)
 [same columns]

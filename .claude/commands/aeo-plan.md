@@ -28,7 +28,7 @@ Follow the Context Engineering rules in CLAUDE.md:
 4. Present the plan-run scope and wait for approval.
 5. Save run config to `output/<brand-slug>/plan.md`: domains, priority URLs, source-of-truth pages, competitor URLs, priority queries, date, PageSpeed API key (if in profile), `Run type` (`production`, `fixture`, or `sample dry run`), `Confidence state: COMPLETE`, and `Build state: NOT_STARTED`.
 
-### Phase 2: Research (3 in parallel)
+### Phase 2: Research (4 in parallel; demand signals is non-blocking)
 
 6. Spawn **Web Crawler** (max_turns: 18):
 ```
@@ -101,7 +101,32 @@ Task tool:
     Return ONLY: Status, Files created, Issues.
 ```
 
-9. Verify `research/site-crawl.md`, `research/tool-data.md`, `research/competitor-analysis.md` exist at the exact expected paths.
+8b. Spawn **Demand Researcher** IN PARALLEL (max_turns: 12):
+```
+Task tool:
+  description: "Gather demand signals"
+  subagent_type: "general-purpose"
+  max_turns: 12
+  prompt: |
+    You are the Demand Researcher for the Enterprise AEO Builder.
+    Read your full instructions at: .claude/agents/demand-researcher.md
+
+    ## Your Task
+    Gather demand signals (Google Autocomplete + People-Also-Ask, plus keyword volume if an API key is in the brand profile) for the brand's priority topics and target AI queries. Normalize to Demand tiers and surface new prompts worth targeting.
+
+    ## Input Files (read these yourself)
+    - Brand profile: /absolute/path/to/config/brand-profile.md
+    - Run config: /absolute/path/to/output/<brand-slug>/plan.md
+    - Competitor Analysis (if present): /absolute/path/to/output/<brand-slug>/research/competitor-analysis.md
+
+    ## Output Files (write these yourself)
+    - /absolute/path/to/output/<brand-slug>/research/demand-signals.md
+
+    ## Return Format
+    Return ONLY: Status, Files created, Issues.
+```
+
+9. Verify `research/site-crawl.md`, `research/tool-data.md`, `research/competitor-analysis.md` exist at the exact expected paths. `research/demand-signals.md` is a prioritization enhancer, not required: if it is missing after one focused retry, note the gap in `## Evidence Gaps`, treat downstream Demand as `Unknown`, and proceed (do NOT block on it).
 10. **Recovery:** for any missing file, re-spawn the responsible agent (max_turns: 10) with: "Your previous run returned before the expected file was available. Read your agent instructions at [absolute agent path] and write output to [absolute missing output path] immediately." If still missing, write a minimal placeholder noting the gap, update `output/<brand-slug>/plan.md` to `Confidence state: PARTIAL_CONFIDENCE`, and proceed only if the remaining evidence can support a useful plan.
 11. Maintain a `## Evidence Gaps` section in `output/<brand-slug>/plan.md` listing failed/missing research inputs, API rate-limit failures, crawl blocks, and competitor coverage gaps.
 
@@ -126,6 +151,7 @@ Task tool:
     - Site Crawl: /absolute/path/to/output/<brand-slug>/research/site-crawl.md
     - Tool Data: /absolute/path/to/output/<brand-slug>/research/tool-data.md
     - Competitor Analysis: /absolute/path/to/output/<brand-slug>/research/competitor-analysis.md
+    - Demand Signals (if present): /absolute/path/to/output/<brand-slug>/research/demand-signals.md
 
     ## Output Files (write these yourself)
     - /absolute/path/to/output/<brand-slug>/research/aeo-analysis.md
@@ -149,7 +175,7 @@ Task tool:
     Read your full instructions at: .claude/agents/aeo-strategist.md
 
     ## Your Task
-    Synthesize all research into /absolute/path/to/output/<brand-slug>/plan/aeo-plan.md -- a prioritized, traceable, artifact-mapped backlog using the aeo-plan-structure skill. Every plan item must include evidence/source labels: brand-profile, site-crawl, tool-data, competitor-analysis, aeo-analysis, or inference.
+    Synthesize all research into /absolute/path/to/output/<brand-slug>/plan/aeo-plan.md -- a prioritized, traceable, artifact-mapped backlog using the aeo-plan-structure skill. Every plan item must include evidence/source labels: brand-profile, site-crawl, tool-data, competitor-analysis, aeo-analysis, demand-signals, or inference. Set each item's Demand field from demand-signals.md (or Unknown if absent) and weight prioritization by Demand x citability gap.
 
     ## Input Files (read these yourself)
     - Brand profile: /absolute/path/to/config/brand-profile.md
@@ -157,6 +183,7 @@ Task tool:
     - Site Crawl: /absolute/path/to/output/<brand-slug>/research/site-crawl.md
     - Tool Data: /absolute/path/to/output/<brand-slug>/research/tool-data.md
     - Competitor Analysis: /absolute/path/to/output/<brand-slug>/research/competitor-analysis.md
+    - Demand Signals (if present): /absolute/path/to/output/<brand-slug>/research/demand-signals.md
     - AEO Analysis: /absolute/path/to/output/<brand-slug>/research/aeo-analysis.md
 
     ## Output Files (write these yourself)

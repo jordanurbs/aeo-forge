@@ -54,6 +54,7 @@ Copy this file to `config/brand-profile.md` and fill it in (or run `/setup`). Th
 
 ## API Keys (optional)
 - Google PageSpeed API key: [key, or "not provided" -- works without a key at lower rate limits]
+- Keyword-volume API (optional): [DataForSEO base64 "login:password", Semrush key, or "not provided" -- enables numeric search volume in demand signals; without it, demand is derived from free Google Autocomplete + People-Also-Ask]
 
 ## Evidence & Confidence (optional but recommended)
 - Known crawl blockers: [login walls, geofencing, robots limits, JS-rendered pages, or "none"]
